@@ -18,6 +18,9 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+
+import org.slf4j.MarkerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.ObjectError;
 
@@ -31,7 +34,8 @@ import javax.servlet.http.HttpSession;
 @Component
 @Aspect
 public class LogAspect {
-    private static Logger logger = LoggerFactory.getLogger(LogAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(LogAspect.class);
+    private static final Marker marker = MarkerFactory.getMarker("user_operations");
 
     // 配置织入点  注解拦截
     @Pointcut("@annotation(com.cy.store.aop.OperationLog)")
@@ -43,20 +47,28 @@ public class LogAspect {
      *
      * @param joinPoint 切点
      */
-    @AfterReturning(pointcut = "logPointCut()", returning = "jsonResult")
-    public void AfterReturning(JoinPoint joinPoint, Object jsonResult) throws JsonProcessingException {
-        String jsonLog = getJsonLog(joinPoint);
+    @AfterReturning(pointcut = "logPointCut()", returning = "result")
+    public void AfterReturning(JoinPoint joinPoint, Object result) throws Exception {
+        OperationLog log = ((MethodSignature) joinPoint.getSignature())
+                .getMethod().getAnnotation(OperationLog.class);
+        //assert (log.fieldName() != null && log.type() != null);
+        String jsonLog = getJsonLog(joinPoint, result, log.type(), log.fieldName());
         writeLog(jsonLog);
     }
     private void writeLog(String log) {
-        logger.info(log);
+        logger.info(marker, log);
     }
-    private String getJsonLog(JoinPoint joinPoint) throws JsonProcessingException {
+
+    private String getJsonLog(JoinPoint joinPoint, Object result, OperationLog.TYPE type, String dataType) throws JsonProcessingException {
         Map<String, Object> log = new HashMap<>();
-        String methodName = ((MethodSignature) joinPoint.getSignature()).getMethod().getName();
-        log.put("method", methodName);
+        log.put("data_type", dataType);
         log.put("time_stamp", System.currentTimeMillis());
-        log.put("params", getParams(joinPoint));
+        if(type == OperationLog.TYPE.PARAMS) {
+            log.put("data", getParams(joinPoint));
+        }
+        if(type == OperationLog.TYPE.RESULT) {
+            log.put("data", result);
+        }
         return JsonUtils.ObjectToJson(log);
     }
 

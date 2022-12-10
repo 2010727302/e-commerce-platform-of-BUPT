@@ -11,6 +11,7 @@ import com.cy.store.service.IOrderService;
 import com.cy.store.service.ex.InsertException;
 import com.cy.store.vo.CartVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +28,11 @@ public class OrderServiceImpl implements IOrderService {
     @Autowired
     private ICartService cartService;
 
+    @Autowired
+    private OrderServiceImpl orderService;
+
     @Transactional
+    @OperationLog(type = OperationLog.TYPE.RESULT, fieldName = "order")
     @Override
     public Order create(Integer aid, Integer[] cids, Integer uid, String username) {
         // 创建当前时间对象
@@ -74,22 +79,7 @@ public class OrderServiceImpl implements IOrderService {
 
         // 遍历carts，循环插入订单商品数据
         for (CartVO cart : carts) {
-            // 创建订单商品数据
-            OrderItem item = new OrderItem();
-            // 补全数据：setOid(order.getOid())
-            item.setOid(order.getOid());
-            // 补全数据：pid, title, image, price, num
-            item.setPid(cart.getPid());
-            item.setTitle(cart.getTitle());
-            item.setImage(cart.getImage());
-            item.setPrice(cart.getRealPrice());
-            item.setNum(cart.getNum());
-            // 补全数据：4项日志
-            item.setCreatedUser(username);
-            item.setCreatedTime(now);
-            item.setModifiedUser(username);
-            item.setModifiedTime(now);
-            // 插入订单商品数据
+            OrderItem item = orderService.createOrderItem(cart, order, username, now);
             Integer rows2 = orderMapper.insertOrderItem(item);
             if (rows2 != 1) {
                 throw new InsertException("插入订单商品数据时出现未知错误，请联系系统管理员");
@@ -98,6 +88,27 @@ public class OrderServiceImpl implements IOrderService {
 
         // 返回
         return order;
+    }
+    @OperationLog(type = OperationLog.TYPE.RESULT, fieldName = "order_item")
+    public OrderItem createOrderItem(CartVO cart, Order order, String username, Date now) {
+
+        OrderItem item = new OrderItem();
+        // 补全数据：setOid(order.getOid())
+        item.setOid(order.getOid());
+        // 补全数据：pid, title, image, price, num
+        item.setPid(cart.getPid());
+        item.setTitle(cart.getTitle());
+        item.setImage(cart.getImage());
+        item.setPrice(cart.getRealPrice());
+        item.setNum(cart.getNum());
+        // 补全数据：4项日志
+        item.setCreatedUser(username);
+        item.setCreatedTime(now);
+        item.setModifiedUser(username);
+        item.setModifiedTime(now);
+        System.out.println("createOrderItem + " + username);
+        // 插入订单商品数据
+        return item;
     }
 
 }

@@ -1,5 +1,6 @@
 package com.cy.store.service.impl;
 
+import com.cy.store.aop.OperationLog;
 import com.cy.store.entity.Product;
 import com.cy.store.mapper.ProductMapper;
 import com.cy.store.service.IProductService;
@@ -28,6 +29,7 @@ public class ProductServiceImpl implements IProductService {
         return list;
     }
 
+    @OperationLog(type = OperationLog.TYPE.RESULT, fieldName = "product_browsed")
     @Override
     public Product findById(Integer id) {
         // 根据参数id调用私有方法执行查询，获取商品数据

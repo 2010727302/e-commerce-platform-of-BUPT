@@ -3,6 +3,13 @@
     <!-- 其他配置省略-->
     <!-- 系统日志输出 -->
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator> <!-- 默认为 ch.qos.logback.classic.boolex.JaninoEventEvaluator -->
+                <expression>marker != null &amp;&amp; marker.contains("user_operations")</expression>
+            </evaluator>
+            <OnMatch>ACCEPT</OnMatch>
+            <OnMismatch>DENY</OnMismatch>
+        </filter>
         <file>user_log/user_operations.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <!-- 按天回滚 daily -->
@@ -16,7 +23,22 @@
             <pattern>%msg%n</pattern>
         </encoder>
     </appender>
+
     <logger name="com.cy.store" level="INFO" additivity="false">
         <appender-ref ref="file" />
     </logger>
+
+    <!--日志输出到控制台规则 -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %d[%level]%c{100}.%M:%L%m%n
+            </pattern>
+        </encoder>
+    </appender>
+    <root level="trace">
+        <appender-ref ref="console"/>
+    </root>
+
+
 </configuration>

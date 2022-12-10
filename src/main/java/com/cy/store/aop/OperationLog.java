@@ -21,4 +21,9 @@ public @interface OperationLog {
      * @title 自定义注解 操作模块
      * @date 2019/12/16
      */
+    enum TYPE {
+        RESULT, PARAMS
+    }
+    TYPE type();
+    String fieldName();
 }

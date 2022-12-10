@@ -34,18 +34,14 @@ springboot + mybatis 框架
 
 展示
 
-![img.png](img.png)
-
-![img_1.png](img_1.png)
+![img_1.jpg](img_1.jpg)
 
 注：红线是Hadoop 推荐算法完成
 ![img_2.png](img_2.png)
 
 ![img_3.png](img_3.png)
 
-![img_4.png](img_4.png)
-
-![img_5.png](img_5.png)
+![img_4.jpg](img_4.jpg)
 
 
 
